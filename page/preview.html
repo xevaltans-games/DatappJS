@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+</head>
+
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2.3.0/dist/socket.io.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        var socket = io()
+
+        socket.on("changeName", name => {
+            document.title = name;
+        });
+
+        socket.on("createElement", options => {
+            if (!options.tag && options.class) {
+                new Error("There is not selector or class when you created element so that not will")
+            } else {
+                let text = options.defaultText ? options.defaultText : ""
+                let html = options.defaultTHTML ? options.defaultHTML : ""
+                let id = options.id ? options.id : ""
+                let classs = options.class ? options.class : ""
+
+                $(document.body).append(`<${options.tag} class=${classs} id="${id}">${html}${text}</${options.tag}>`);
+
+            }
+        });
+
+        socket.on("editElement", options => {
+            if (!options.selector && options.class) {
+                throw Error("There is not selector or class when you edit element so that not will make")
+            } else {
+                let text = options.text ? options.text : ""
+                let html = options.html ? options.html : ""
+                let id = options.id ? options.id : "";
+                let classs = options.class ? options.class : "";
+                let el = $(options.selector);
+
+                el.addClass(classs);
+                if(text) {
+                    el.text(text)
+                } else {
+                    if(html) {
+                        el.html(html)
+                    }
+                }
+               
+            }
+        });
+
+        socket.on("elementOnClick", /**@param {string} selector*/ (selector) => {
+            $(selector).on("click",(ev) => {
+                socket.emit("elementOnClick2");
+            })
+
+            
+        })
+
+        socket.on("elementGetValue", /**@param {string} selector */ selector => {
+            let val = $(selector).val()
+            socket.emit("elementGetValue", val)
+
+            
+        });
+
+        socket.on("egC", /** @param {string} selector * @param {string} type */ (selector, type) => {
+            let el = $(selector)
+            if(type === "text") {
+                socket.emit("egC2", el.text())
+            } else if(type === "html") {
+                socket.emit("egC2", el.html())
+            }
+
+            
+        });
+
+        socket.on("importCSS", /**@param {Array} arrCSS */ (hostname ,port, arrCSS) => {
+            arrCSS.forEach(css => {
+                document.head.innerHTML += `<link rel="stylesheet" href="http://${hostname}:${port}/${css}">`
+            })
+
+            
+        })
+
+        socket.on("RLPage", () => {
+            document.location.reload()
+        })
+    </script>
+</body>
+
+</html>
